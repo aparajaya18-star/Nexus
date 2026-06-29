@@ -1,17 +1,19 @@
 import markdown
 import json
+import dateparser
+from datetime import datetime
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 from flask import Flask, request, render_template, jsonify
+from dateparser import parse
 
 load_dotenv()
 
-history = []
 model = "gemini-3.1-flash-lite"
-from google import genai
-
 client = genai.Client()
+
+history = []
 
 CLASSIFIER_SYSTEM_PROMPT = f"""
 You are the intent parser for a productivity application.
@@ -34,8 +36,27 @@ Rules:
 
 Extract the following information whenever possible:
 - title: a short description of the task or event.
-- date: the date exactly as mentioned by the user.
-- time: the time exactly as mentioned by the user.
+- datetime: Extract a single datetime field.
+
+If the user specifies a time without AM or PM,
+infer the most likely interpretation from context and always return
+the time with AM or PM included.
+
+Examples:
+
+"I have a test tomorrow at 9"
+→ "tomorrow at 9 AM"
+
+"I have dinner tomorrow at 9"
+→ "tomorrow at 9 PM"
+
+"I have class Monday at 8"
+→ "Monday at 8 AM"
+
+"My flight leaves at 11"
+→ "today at 11 AM"
+
+Always include AM or PM whenever a time is present.
 
 If a field is not present, return null.
 
@@ -43,6 +64,26 @@ Do not invent missing information.
 Do not include explanations.
 Return JSON only.
 """
+
+response_schema = {
+    "type": "object",
+    "properties": {
+        "intent": {
+            "type": "string",
+            "enum": ["Todo", "Deadline", "Goal", "Chat"]
+        },
+        "title": {
+            "type": ["string", "null"]
+        },
+        "datetime": {
+            "type": ["string", "null"]
+        },
+        "details": {
+            "type": ["string", "null"]
+        }
+    },
+    "required": ["intent", "title", "datetime", "details"]
+}
 
 chatbot_system_prompt = """
 You are Nexus, the AI assistant inside a productivity dashboard.
@@ -68,40 +109,40 @@ Never invent tasks or claim something was added unless the classification indica
 Keep responses concise (1-3 sentences).
 """
 
-response_schema = {
-    "type": "object",
-    "properties": {
-        "intent": {
-            "type": "string",
-            "enum": ["Todo", "Deadline", "Goal", "Chat"]
-        },
-        "title": {
-            "type": ["string", "null"]
-        },
-        "date": {
-            "type": ["string", "null"]
-        },
-        "time": {
-            "type": ["string", "null"]
-        },
-        "details": {
-            "type": ["string", "null"]
-        }
-    },
-    "required": ["intent", "title", "date", "time", "details"]
-}
-
 # Function to classify tasks
 def classify_message(user_input):
-    classification = client.models.generate_content(
-    model="gemini-3.1-flash-lite",
-    contents=user_input,
-    config={
-        "system_instruction": CLASSIFIER_SYSTEM_PROMPT,
-        "response_mime_type": "application/json",
-        "response_json_schema": response_schema
-    },
-)
+    response = client.models.generate_content(
+        model="gemini-3.1-flash-lite",
+        contents=user_input,
+        config={
+            "system_instruction": CLASSIFIER_SYSTEM_PROMPT,
+            "response_mime_type": "application/json",
+            "response_json_schema": response_schema
+        }
+    )
+    
+    classification = json.loads(response.text)
+    print(f"Classification: {classification}")
+    classification = normalize_datetime(classification)
+
+    return classification
+
+# Function to normalize datetime
+def normalize_datetime(classification):
+    if classification["datetime"]:
+        parsed = dateparser.parse(classification["datetime"],
+                                  settings={
+                                      "RELATIVE_BASE": datetime.now(),
+                                      "PREFER_DATES_FROM": "future",
+                                  })
+        if parsed:
+            classification["datetime"] = parsed.isoformat()
+            classification["date"] = parsed.strftime("%d %b %Y")
+            classification["time"] = parsed.strftime("%I:%M %p")
+        else:
+            classification["datetime"] = None
+            classification["date"] = None
+            classification["time"] = None
     return classification
 
 # Function to generate response
@@ -129,6 +170,7 @@ def home():
     classification = {
         "intent": "Chat",
         "title": None,
+        "datetime": None,
         "date": None,
         "time": None,
         "details": None
@@ -145,15 +187,24 @@ def home():
         else:
             try:
                 # Get Classification
-                classification = json.loads(classify_message(user_input).text)
+                classification = classify_message(user_input)
                 intent = classification["intent"]
 
                 # Get chatbot response
                 prompt = f"Chat History: {history}\n\nIntent: {intent}\n\nUser Message: {user_input}"
                 response_text = f"{generate_response(prompt)}"
             except Exception as e:
-                print(f"ERROR: {e}")
-                response_text = "The AI service is temporarily down"
+                print(e)
+
+                if classification["intent"] != "Chat":
+                    response_text = (
+                        "I've added that to your dashboard, "
+                        "but I'm having trouble generating a reply right now."
+                    )
+                else:
+                    response_text = (
+                        "I'm having trouble reaching Gemini at the moment."
+                    )
         
         html_output = markdown.markdown(response_text)
         print(html_output)

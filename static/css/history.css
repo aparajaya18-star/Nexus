@@ -1,0 +1,83 @@
+body{
+    background:#0B1120;
+    color:white;
+    font-family:Arial,Helvetica,sans-serif;
+    margin:0;
+}
+
+.top-bar{
+    width:900px;
+    margin:40px auto 25px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.back-btn{
+    color:#BFD8FF;
+    text-decoration:none;
+}
+
+.back-btn:hover{
+    color:white;
+}
+
+.history-container{
+    width:900px;
+    margin:auto;
+    display:flex;
+    flex-direction:column;
+    gap:25px;
+    padding-bottom:40px;
+}
+
+.history-card{
+    background:#16213E;
+    border-radius:18px;
+    padding:22px;
+    border:1px solid #2E4F74;
+}
+
+.history-tag{
+    display:inline-block;
+    padding:6px 14px;
+    border-radius:999px;
+    margin-bottom:18px;
+    font-size:.85rem;
+    font-weight:bold;
+}
+
+.history-tag.todo{
+    background:#4A90E2;
+}
+
+.history-tag.deadline{
+    background:#6C8CFF;
+}
+
+.history-tag.goal{
+    background:#5FA8FF;
+}
+
+.history-tag.chat{
+    background:#506680;
+}
+
+.history-section{
+    margin-bottom:18px;
+}
+
+.history-section h3{
+    margin-bottom:8px;
+    color:#BFD8FF;
+}
+
+.history-output{
+    line-height:1.6;
+}
+
+.empty-history{
+    text-align:center;
+    margin-top:100px;
+    color:#8FAFD6;
+}

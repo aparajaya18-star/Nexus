@@ -1,46 +1,56 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>History-AI Study Assistant</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    </head>
-    <body>
-        <div class="back-btn">
-            <a href="/">← Back</a>
-        </div>
-        <h1>History</h1>
-        {% if history %}
-            {% for item in history %}
+<head>
+    <title>Nexus • History</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/history.css') }}">
+</head>
 
-            <div class="output-container history-card">
-                <h2>{{ item.feature }}</h2>
-                {% if item.custom_prompt %}
-                <p>
-                    <strong>Custom Prompt:</strong>
-                    {{ item.custom_prompt }}
-                </p>
-                {% endif %}
-                <p>
-                    <strong>Temperature:</strong>
-                    {{ item.temperature }}
-                </p>
-                <p>
-                    <strong>Input:</strong>
-                    {{ item.input }}
-                </p>
+<body>
 
-                <p><strong>Output:</strong></p>
+    <div class="top-bar">
+        <a href="/" class="back-btn">← Dashboard</a>
+        <h1>Conversation History</h1>
+    </div>
 
+    <div class="history-container">
+
+    {% if history %}
+
+        {% for item in history|reverse %}
+
+        <div class="history-card">
+
+            <div class="history-tag {{ item.classification|lower }}">
+                {{ item.classification }}
+            </div>
+
+            <div class="history-section">
+                <h3>You</h3>
+                <p>{{ item.user }}</p>
+            </div>
+
+            <div class="history-section">
+                <h3>Nexus</h3>
                 <div class="history-output">
-                    {{ item.output|safe }}
+                    {{ item.assistant|safe }}
                 </div>
-                <hr>
             </div>
-            {% endfor %}
-        {% else %}
-            <div class="output-container">
-                <p>No history yet.</p>
-            </div>
-        {% endif %}
-    </body>
+
+        </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <div class="empty-history">
+            <h2>No conversations yet.</h2>
+            <p>Start chatting with Nexus to see your history here.</p>
+        </div>
+
+    {% endif %}
+
+    </div>
+
+</body>
 </html>

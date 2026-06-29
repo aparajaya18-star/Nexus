@@ -1,21 +1,19 @@
+/* Global */
+
 body{
     background:#0B1120;
     color:white;
-    font-family:Arial,Helvetica,sans-serif;
+    font-family:Arial, Helvetica, sans-serif;
     margin:0;
 }
 
-.top-bar{
-    position: relative;
-    margin:40px auto;
-    width:80%;
-}
 
-.back-btn{
-    position:absolute;
-    left:0;
-    top:50%;
-    transform:translateY(-50%);
+/* Top Bar */
+
+.top-bar{
+    position:relative;
+    width:80%;
+    margin:40px auto;
 }
 
 .top-bar h1{
@@ -24,6 +22,11 @@ body{
 }
 
 .back-btn{
+    position:absolute;
+    left:0;
+    top:50%;
+    transform:translateY(-50%);
+
     color:#BFD8FF;
     text-decoration:none;
 }
@@ -32,29 +35,154 @@ body{
     color:white;
 }
 
+
+/* Summary Section */
+
+.summary-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:20px;
+
+    max-width:910px;
+    margin:30px auto;
+    padding:16px;
+
+    background:rgba(125,211,252,.22);
+    border:1px solid rgba(125,211,252,.18);
+    border-radius:14px;
+}
+
+.summary-card{
+    padding:20px;
+    text-align:center;
+    border:1px solid rgb(125, 211, 252, 0.5);
+    border-radius:18px;
+}
+
+.summary-card h3{
+    margin-bottom:10px;
+    font-size:1.5rem;
+}
+
+.summary-card span{
+    display:block;
+
+    font-size:1.5rem;
+    font-weight:bold;
+
+    color:#7dd3fc;
+}
+
+.summary-card p{
+    margin-top:8px;
+    color:#aaa;
+}
+
+
+/* History Layout */
+
 .history-container{
     width:900px;
     margin:auto;
+    padding-bottom:40px;
+
     display:flex;
     flex-direction:column;
     gap:25px;
-    padding-bottom:40px;
 }
 
 .history-card{
-    background:#16213E;
+    padding:24px;
+    margin-bottom:25px;
+
+    background:#1d1d1d;
+    border:1px solid #333;
     border-radius:18px;
-    padding:22px;
-    border:1px solid #2E4F74;
 }
+
+.history-header{
+    margin-bottom:18px;
+}
+
+.history-section{
+    margin-bottom:18px;
+}
+
+.history-section h3{
+    margin-bottom:8px;
+    color:#BFD8FF;
+}
+
+.history-output{
+    line-height:1.6;
+}
+
+
+/* Conversation Messages */
+
+.message-block{
+    margin-bottom:18px;
+}
+
+.message-block h3{
+    margin-bottom:8px;
+    color:#7dd3fc;
+}
+
+.assistant-response{
+    padding:14px;
+
+    background:#292929;
+    border-radius:10px;
+}
+
+
+/* Task Summary */
+
+.task-summary{
+    margin-top:20px;
+}
+
+.task-chip{
+    display:inline-block;
+
+    margin:6px;
+    padding:8px 14px;
+
+    font-size:.9rem;
+
+    border-radius:20px;
+}
+
+.task-chip.todo{
+    background:#2563eb33;
+}
+
+.task-chip.deadline{
+    background:#dc262633;
+}
+
+.task-chip.goal{
+    background:#16a34a33;
+}
+
+.task-chip.chat{
+    background:#444;
+}
+
+
+/* History Tags */
 
 .history-tag{
     display:inline-block;
-    padding:6px 14px;
-    border-radius:999px;
+
     margin-bottom:18px;
+    padding:6px 14px;
+
     font-size:.85rem;
     font-weight:bold;
+
+    border-radius:999px;
 }
 
 .history-tag.todo{
@@ -73,21 +201,12 @@ body{
     background:#506680;
 }
 
-.history-section{
-    margin-bottom:18px;
-}
 
-.history-section h3{
-    margin-bottom:8px;
-    color:#BFD8FF;
-}
-
-.history-output{
-    line-height:1.6;
-}
+/* Empty State */
 
 .empty-history{
-    text-align:center;
     margin-top:100px;
+
+    text-align:center;
     color:#8FAFD6;
 }

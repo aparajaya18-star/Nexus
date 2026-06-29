@@ -13,31 +13,84 @@
         <h1>Conversation History</h1>
     </div>
 
+    <div class="summary-grid">
+
+        <div class="summary-card">
+            <h3>💬</h3>
+            <span>{{ stats.conversations }}</span>
+            <p>Conversations</p>
+        </div>
+
+        <div class="summary-card">
+            <h3>📝</h3>
+            <span>{{ stats.todos }}</span>
+            <p>Todos</p>
+        </div>
+
+        <div class="summary-card">
+            <h3>📅</h3>
+            <span>{{ stats.deadlines }}</span>
+            <p>Deadlines</p>
+        </div>
+
+        <div class="summary-card">
+            <h3>🎯</h3>
+            <span>{{ stats.goals }}</span>
+            <p>Goals</p>
+        </div>
+
+    </div>
+
     <div class="history-container">
 
     {% if history %}
 
         {% for item in history|reverse %}
 
-        <div class="history-card">
+            <div class="history-card">
 
-            <div class="history-tag {{ item.classification|lower }}">
-                {{ item.classification }}
-            </div>
-
-            <div class="history-section">
-                <h3>You</h3>
-                <p>{{ item.user }}</p>
-            </div>
-
-            <div class="history-section">
-                <h3>Nexus</h3>
-                <div class="history-output">
-                    {{ item.assistant|safe }}
+                <div class="history-header">
+                    <h2>Conversation {{ loop.revindex }}</h2>
                 </div>
-            </div>
 
-        </div>
+                <div class="message-block">
+                    <h3>You</h3>
+                    <p>{{ item.user_input }}</p>
+                </div>
+
+                <div class="message-block">
+                    <h3>Nexus</h3>
+                    <div class="assistant-response">
+                        {{ item.response|safe }}
+                    </div>
+                </div>
+
+                {% if item.tasks %}
+                <div class="task-summary">
+                    <h3>Tasks Detected</h3>
+
+                    {% for task in item.tasks %}
+                    <div class="task-chip {{ task.intent|lower }}">
+                        <strong>{{ task.intent }}</strong>
+
+                        {% if task.title %}
+                        • {{ task.title }}
+                        {% endif %}
+
+                        {% if task.date %}
+                        <span>{{ task.date }}</span>
+                        {% endif %}
+
+                        {% if task.time %}
+                        <span>{{ task.time }}</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                </div>
+                {% endif %}
+
+            </div>
 
         {% endfor %}
 

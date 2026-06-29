@@ -19,12 +19,16 @@ CLASSIFIER_SYSTEM_PROMPT = f"""
 You are the intent parser for a productivity application.
 
 Analyze the user's message and extract any structured task information.
+A single message may contain zero, one, or multiple tasks. 
+Extract every distinct task separately. 
 
-Classify the message into exactly one of these intents:
+Classify each task into exactly one of these intents:
 - Todo
 - Deadline
 - Goal
 - Chat
+
+If a message contains both conversational text and tasks, include a Chat item for the conversational portion only if it requires a response; otherwise only return the extracted tasks.
 
 Return ONLY valid JSON matching the provided schema.
 
@@ -68,21 +72,35 @@ Return JSON only.
 response_schema = {
     "type": "object",
     "properties": {
-        "intent": {
-            "type": "string",
-            "enum": ["Todo", "Deadline", "Goal", "Chat"]
-        },
-        "title": {
-            "type": ["string", "null"]
-        },
-        "datetime": {
-            "type": ["string", "null"]
-        },
-        "details": {
-            "type": ["string", "null"]
+        "tasks": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "intent": {
+                        "type": "string",
+                        "enum": ["Todo", "Deadline", "Goal", "Chat"]
+                    },
+                    "title": {
+                        "type": ["string", "null"]
+                    },
+                    "datetime": {
+                        "type": ["string", "null"]
+                    },
+                    "details": {
+                        "type": ["string", "null"]
+                    }
+                },
+                "required": [
+                    "intent",
+                    "title",
+                    "datetime",
+                    "details"
+                ]
+            }
         }
     },
-    "required": ["intent", "title", "datetime", "details"]
+    "required": ["tasks"]
 }
 
 chatbot_system_prompt = """
@@ -120,10 +138,13 @@ def classify_message(user_input):
             "response_json_schema": response_schema
         }
     )
-    
+
     classification = json.loads(response.text)
+
     print(f"Classification: {classification}")
-    classification = normalize_datetime(classification)
+    
+    for task in classification["tasks"]:
+        normalize_datetime(task)
 
     return classification
 
@@ -167,13 +188,17 @@ def home():
     user_input=""
     html_output=""
     intent = "Chat"
-    classification = {
-        "intent": "Chat",
-        "title": None,
-        "datetime": None,
-        "date": None,
-        "time": None,
-        "details": None
+    classified_tasks = {
+        "tasks": [
+            {
+                "intent": intent,
+                "title": None,
+                "datetime": None,
+                "date": None,
+                "time": None,
+                "details": None
+            }
+        ]
     }
 
     if request.method == 'POST':
@@ -187,45 +212,62 @@ def home():
         else:
             try:
                 # Get Classification
-                classification = classify_message(user_input)
-                intent = classification["intent"]
+                classified_tasks = classify_message(user_input)
 
                 # Get chatbot response
-                prompt = f"Chat History: {history}\n\nIntent: {intent}\n\nUser Message: {user_input}"
+                prompt = f"Chat History: {history}\n\nDetected Tasks: {classified_tasks['tasks']}\n\nUser Message: {user_input}"
                 response_text = f"{generate_response(prompt)}"
             except Exception as e:
                 print(e)
 
-                if classification["intent"] != "Chat":
-                    response_text = (
-                        "I've added that to your dashboard, "
-                        "but I'm having trouble generating a reply right now."
-                    )
-                else:
-                    response_text = (
-                        "I'm having trouble reaching Gemini at the moment."
-                    )
+                for task in classified_tasks["tasks"]:
+                    if task["intent"] != "Chat":
+                        response_text = (
+                            "I've added that to your dashboard, "
+                            "but I'm having trouble generating a reply right now."
+                        )
+                    else:
+                        response_text = (
+                            "I'm having trouble reaching Gemini at the moment."
+                        )
         
         html_output = markdown.markdown(response_text)
         print(html_output)
         # Save input and response in history
         history.append({
-        "user": user_input,
-        "assistant": response_text,
-        "classification": intent
+            "user_input": user_input,
+            "response": html_output,
+            "tasks": classified_tasks["tasks"]
         })
 
         # Return chat response
         return jsonify({
             "response":html_output,
-            "classification": classification
+            "classification": classified_tasks
             })
         
     return render_template('index.html', output=html_output, user_input=user_input)    
 
 @app.route('/history')
 def history_page():
-    return render_template('history.html', history=history)
+
+    stats = {
+        "conversations": len(history),
+        "todos": 0,
+        "deadlines": 0,
+        "goals": 0
+    }
+
+    for conversation in history:
+        for task in conversation["tasks"]:
+            if task["intent"] == "Todo":
+                stats["todos"] += 1
+            elif task["intent"] == "Deadline":
+                stats["deadlines"] += 1
+            elif task["intent"] == "Goal":
+                stats["goals"] += 1
+
+    return render_template('history.html', history=history, stats=stats)
 
 if __name__ == '__main__':
     app.run(debug=True)

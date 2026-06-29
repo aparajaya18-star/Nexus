@@ -122,13 +122,15 @@ const  handleChat = async () => {
         incomingChatLi.querySelector("p").innerHTML = data.response;
 
         // Update lists Appropriately
-        if (
-            data.classification &&
-            data.classification.intent &&
-            data.classification.intent !== "Chat"
-            ) {
-                addItemToList(data.classification);
-            }
+        for (const task of data.classification.tasks) {
+            if (
+                task &&
+                task.intent &&
+                task.intent !== "Chat"
+                ) {
+                    addItemToList(task);
+                }
+        }   
     }
     catch(error){
         incomingChatLi.querySelector("p").textContent =

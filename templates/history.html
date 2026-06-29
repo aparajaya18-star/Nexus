@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>History-AI Study Assistant</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head>
+    <body>
+        <div class="back-btn">
+            <a href="/">← Back</a>
+        </div>
+        <h1>History</h1>
+        {% if history %}
+            {% for item in history %}
+
+            <div class="output-container history-card">
+                <h2>{{ item.feature }}</h2>
+                {% if item.custom_prompt %}
+                <p>
+                    <strong>Custom Prompt:</strong>
+                    {{ item.custom_prompt }}
+                </p>
+                {% endif %}
+                <p>
+                    <strong>Temperature:</strong>
+                    {{ item.temperature }}
+                </p>
+                <p>
+                    <strong>Input:</strong>
+                    {{ item.input }}
+                </p>
+
+                <p><strong>Output:</strong></p>
+
+                <div class="history-output">
+                    {{ item.output|safe }}
+                </div>
+                <hr>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="output-container">
+                <p>No history yet.</p>
+            </div>
+        {% endif %}
+    </body>
+</html>

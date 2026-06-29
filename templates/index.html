@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Nexus</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    </head>
+    <body>
+        <h1>Nexus</h1>
+        <div class="dashboard">
+            <div class="chat-bot">
+                <header>
+                    <h2>⁺₊✧ Nexus</h2>
+                </header>
+                <ul class="chatbox">
+                    <li class="chat-incoming chat">
+                        <p>How can I assist you today?</p>
+                    </li>
+                </ul>
+                <div class="chat-input">
+                    <textarea rows="0" cols="17" placeholder="Enter a message"></textarea>
+                    <button id="send-btn">></button>
+                </div>
+            </div>
+            <div class="lists">
+                <div class="deadline">
+                    <h2>Important dates</h2>
+                    <ul class="task-list">
+                        <li class="placeholder">No items yet</li>
+                    </ul>
+                </div>
+                <div class="todo">
+                    <h2>To Do</h2>
+                    <ul class="task-list">
+                        <li class="placeholder">No items yet</li>
+                    </ul>
+                </div>
+                <div class="goal">
+                    <h2>Goals</h2>
+                    <ul class="task-list">
+                        <li class="placeholder">No items yet</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="history-btn">
+            <a href="/history">View History →</a>
+        </div>
+        <script src="{{ url_for('static', filename='js/chat.js') }}" defer></script>
+    </body>
+    <footer>
+        © 2026 Aparajaya · Nexus
+    </footer>
+</html>

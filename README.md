@@ -1,6 +1,6 @@
 # Nexus – AI Productivity Dashboard
 
-Nexus is an AI-powered productivity dashboard that combines conversational AI with structured task management. Users can chat naturally with the assistant, and Nexus automatically classifies requests into **Todos**, **Deadlines**, **Goals**, or regular conversations, updating the dashboard in real time.
+Nexus is a conversational AI productivity dashboard that combines natural language understanding with structured task management. Users can chat naturally with the assistant, and Nexus extracts **Todos**, **Deadlines** and **Goals**, stores them persistently in SQLite, and uses recent conversation history to provide context-aware responses.
 
 Built using **Flask**, **JavaScript**, **HTML/CSS**, and the **Google Gemini API**.
 
@@ -8,22 +8,19 @@ Built using **Flask**, **JavaScript**, **HTML/CSS**, and the **Google Gemini API
 
 ## Features
 
-* 💬 Conversational AI assistant powered by Gemini
-* 🧠 AI intent classification into:
-
+* 💬 Conversational AI assistant powered by Google Gemini
+* 🧠 AI-powered intent classification into:
   * Todo
   * Deadline
   * Goal
   * Chat
-* ⚡ Automatic extraction of structured task information
+* ✨ Multi-task extraction from a single message
+* 🧩 Context-aware conversations with persistent memory and dashboard state
+* 📅 Automatic extraction and normalization of dates and times
 * 📋 Live dashboard updates without refreshing the page
-* 📅 Dedicated sections for:
-
-  * To Do
-  * Important Dates
-  * Goals
-* ✅ Interactive checkboxes for marking tasks as completed
-* 📝 Conversation history page
+* 📝 Persistent task storage using SQLite
+* 📖 Conversation history with previous interactions
+* ✅ Interactive checkboxes for tracking completed tasks
 * 🎨 Clean, responsive dark-themed interface
 
 ---
@@ -32,6 +29,7 @@ Built using **Flask**, **JavaScript**, **HTML/CSS**, and the **Google Gemini API
 
 * Python
 * Flask
+* SQLite
 * HTML5
 * CSS3
 * JavaScript (Fetch API)
@@ -52,14 +50,17 @@ Nexus/
 │       └── chat.js
 │
 ├── templates/
-│   ├── index.html
-│   └── history.html
+│   ├── index.html  
+│   └── history.html  
 │
+├── data/
+│   └── dashboard_history.db  
+│ 
 ├── images/
-│   ├── dashboard.png
-│   └── history.png
+│   ├── dashboard.png 
+│   └── history.png 
 │
-├── app.py
+├── app.py  
 ├── requirements.txt
 ├── .env
 └── README.md
@@ -72,7 +73,7 @@ Nexus/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/Nexus.git
+git clone https://github.com/aparajaya18-star/Nexus.git
 cd Nexus
 ```
 
@@ -119,22 +120,19 @@ Open your browser and visit:
 ```
 http://127.0.0.1:5000
 ```
+> **Note:** The SQLite database is created automatically on first launch.
 
 ---
 
 ## How It Works
 
-1. The user sends a message through the chat interface.
-2. Gemini classifies the message into one of four intents:
-
-   * Todo
-   * Deadline
-   * Goal
-   * Chat
-3. Structured information (title, date, time, and details) is extracted as JSON.
-4. The frontend instantly updates the corresponding dashboard list.
-5. Nexus generates a conversational response based on the detected intent.
-6. The interaction is stored in the conversation history.
+1. The user sends a natural language message.
+2. Gemini extracts one or more structured tasks and classifies each as a Todo, Deadline, Goal, or Chat.
+3. Relative dates and times are normalized into a standard format.
+4. Tasks are stored in a persistent SQLite database.
+5. The dashboard updates instantly without refreshing.
+6. The assistant generates a context-aware response using the current dashboard state and recent conversation history.
+7. The interaction is saved for future conversations.
 
 ---
 
@@ -160,14 +158,15 @@ A demonstration video is available here:
 
 ## Future Improvements
 
-* Persistent database storage
-* User authentication
-* Edit and delete tasks
-* Relative date normalization
-* Streaming AI responses
-* Function calling / tool calling
 * Calendar integration
-* Notifications and reminders
+* Smart reminders and notifications
+* Natural language task editing
+* Task deletion through chat
+* Dashboard analytics and productivity insights
+* AI-powered daily planning
+* Streaming AI responses
+* Function / tool calling
+* User authentication
 
 ---
 
@@ -178,6 +177,7 @@ Flask
 google-genai
 python-dotenv
 Markdown
+dateparser
 ```
 
 ---

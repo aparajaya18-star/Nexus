@@ -3,8 +3,50 @@ const chatInput =
 const sendChatBtn =
     document.querySelector(".chat-input button");
 const chatbox = document.querySelector('.chatbox')
-const url = "/"
+const url = "/chat";
 let userMessage;
+
+// Function to handle checkbox change event
+async function handleCheckboxChange(checkbox) {
+    taskLi = checkbox.closest(".task-item");
+    taskLi.classList.toggle("completed", checkbox.checked);
+
+    // Move completed items to bottom
+    const list = taskLi.closest(".task-list");
+    if (checkbox.checked) {
+        list.appendChild(taskLi);      // move to bottom
+    } else {
+        list.prepend(taskLi);          // move back to top
+    }
+
+    // Send update to server
+    await fetch("/update_task", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            id: checkbox.dataset.id,
+            completed: checkbox.checked
+        })
+    });
+    }
+
+// Function to maintain checked state of checkboxes and attach event listeners upon page load
+function attachCheckboxListener()
+{
+    const checkboxes = document.querySelectorAll(".task-check");
+    checkboxes.forEach((checkbox) => {
+        checkbox.addEventListener("change", () => {
+            handleCheckboxChange(checkbox);
+        });
+    });
+}
+
+// Attach event listener to checkboxes on page load
+document.addEventListener("DOMContentLoaded", (event) => {
+    attachCheckboxListener();
+});
 
 const createChatLi = (message, className) => {
     const chatLi = document.createElement("li");
@@ -26,12 +68,13 @@ const addItemToList = (item) => {
     const taskLi = document.createElement("li");
     taskLi.classList.add("task-item");
 
+    // Add new item to list based on intent
     switch(item.intent){
 
         case "Todo":
             taskLi.innerHTML = `
                 <label class="task-entry">
-                    <input type="checkbox" class="task-check">
+                    <input type="checkbox" class="task-check" data-id="${item.id}">
                     <span>${item.title}</span>
                 </label>
             `;
@@ -40,7 +83,7 @@ const addItemToList = (item) => {
         case "Deadline":
             taskLi.innerHTML = `
                 <label class="task-entry">
-                    <input type="checkbox" class="task-check">
+                    <input type="checkbox" class="task-check" data-id="${item.id}">
                     <div>
                         <strong>${item.title}</strong><br>
                         📅 ${item.date ?? "-"}<br>
@@ -53,7 +96,7 @@ const addItemToList = (item) => {
         case "Goal":
             taskLi.innerHTML = `
                 <label class="task-entry">
-                    <input type="checkbox" class="task-check">
+                    <input type="checkbox" class="task-check" data-id="${item.id}">
                     <div>
                         <strong>🎯 ${item.title}</strong>
                         ${item.details ? `<br>${item.details}` : ""}
@@ -67,16 +110,7 @@ const addItemToList = (item) => {
     const checkbox = taskLi.querySelector(".task-check");
 
     checkbox.addEventListener("change", () => {
-
-        taskLi.classList.toggle("completed");
-
-        // Move completed items to bottom
-        if (checkbox.checked) {
-            list.appendChild(taskLi);      // move to bottom
-        } else {
-            list.prepend(taskLi);          // move back to top
-        }
-
+        handleCheckboxChange(checkbox)
     });
 
     list.appendChild(taskLi);
@@ -138,17 +172,6 @@ const  handleChat = async () => {
     }
 
 }
-
-/*function cancel() {
-    let chatbotcomplete = document.querySelector(".chat-bot");
-    if (chatbotcomplete.style.display != 'none') {
-        chatbotcomplete.style.display = "none";
-        let lastMsg = document.createElement("p");
-        lastMsg.textContent = 'Thanks for using our Chatbot!';
-        lastMsg.classList.add('lastMessage');
-        document.body.appendChild(lastMsg)
-    }
-}*/
 
 sendChatBtn.addEventListener("click", handleChat);
 chatInput.addEventListener("keydown", (e) => {

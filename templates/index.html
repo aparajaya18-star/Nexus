@@ -22,24 +22,98 @@
                 </div>
             </div>
             <div class="lists">
+
                 <div class="deadline">
-                    <h2>Important dates</h2>
+                    <h2>Important Dates</h2>
+
                     <ul class="task-list">
-                        <li class="placeholder">No items yet</li>
+                    {% if deadlines %}
+
+                        {% for item in deadlines %}
+                        <li class="task-item {% if item.completed %}completed{% endif %}">
+                            <label class="task-entry">
+                                <input
+                                    type="checkbox"
+                                    class="task-check"
+                                    data-id="{{ item.id }}"
+                                    {% if item.completed %}checked{% endif %}
+                                >
+
+                                <div>
+                                    <strong>{{ item.title }}</strong><br>
+
+                                    {% if item.date %}
+                                        📅 {{ item.date }}<br>
+                                    {% endif %}
+
+                                    {% if item.time %}
+                                        🕒 {{ item.time }}
+                                    {% endif %}
+                                </div>
+                            </label>
+                        </li>
+                        {% endfor %}
+
+                    {% else %}
+                        <li class="placeholder">Nothing here yet</li>
+                    {% endif %}
                     </ul>
                 </div>
+
                 <div class="todo">
                     <h2>To Do</h2>
                     <ul class="task-list">
-                        <li class="placeholder">No items yet</li>
+                        {% if todos %}
+                            {% for item in todos %}
+                            <li class="task-item {% if item.completed %}completed{% endif %}">
+                                <label class="task-entry">
+                                    <input
+                                        type="checkbox"
+                                        class="task-check"
+                                        data-id="{{ item.id }}"
+                                        {% if item.completed %}checked{% endif %}
+                                    >
+                                    <div>
+                                        <span>{{ item.title }}</span>
+                                    </div>
+                                </label>
+                            </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="placeholder">Nothing here yet</li>
+                        {% endif %}
                     </ul>
                 </div>
+
                 <div class="goal">
                     <h2>Goals</h2>
                     <ul class="task-list">
-                        <li class="placeholder">No items yet</li>
+                        {% if goals %}
+                            {% for item in goals %}
+                            <li class="task-item {% if item.completed %}completed{% endif %}">
+                                <label class="task-entry">
+                                    <input
+                                        type="checkbox"
+                                        class="task-check"
+                                        data-id="{{ item.id }}"
+                                        {% if item.completed %}checked{% endif %}
+                                    >
+                                    <div>
+                                        <strong>🎯 {{ item.title }}</strong>
+                                        {% if item.details %}
+                                            <br>
+                                            {{ item.details }}
+                                        {% endif %}
+                                    </div>
+                                </label>
+                            </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="placeholder">Nothing here yet</li>
+                        {% endif %}
                     </ul>
                 </div>
+
             </div>
         </div>
         <div class="history-btn">

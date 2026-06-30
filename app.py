@@ -1,6 +1,7 @@
 import markdown
 import json
 import dateparser
+import sqlite3
 from datetime import datetime
 from google import genai
 from google.genai import types
@@ -10,10 +11,9 @@ from dateparser import parse
 
 load_dotenv()
 
+# -------- Configuration --------
 model = "gemini-3.1-flash-lite"
 client = genai.Client()
-
-history = []
 
 CLASSIFIER_SYSTEM_PROMPT = f"""
 You are the intent parser for a productivity application.
@@ -127,6 +127,43 @@ Never invent tasks or claim something was added unless the classification indica
 Keep responses concise (1-3 sentences).
 """
 
+# -------- Database Setup --------
+
+# Initialize SQLite database
+sqlite_connection = sqlite3.connect('data/dashboard_history.db', check_same_thread=False)
+# Create a cursor object to interact with the database
+cursor = sqlite_connection.cursor()
+
+# Create tables for history and tasks
+query_history = """
+CREATE TABLE IF NOT EXISTS HISTORY (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_input TEXT NOT NULL,
+    response TEXT NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+)
+"""
+query_tasks = """
+CREATE TABLE IF NOT EXISTS TASKS (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    history_id INTEGER NOT NULL,
+    intent TEXT NOT NULL,
+    title TEXT,
+    datetime TEXT,
+    date TEXT,
+    time TEXT,
+    details TEXT,
+    completed BOOLEAN DEFAULT 0,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (history_id) REFERENCES HISTORY(id)
+)
+"""
+
+cursor.execute(query_history)
+cursor.execute(query_tasks)
+
+# -------- Functions --------
+
 # Function to classify tasks
 def classify_message(user_input):
     response = client.models.generate_content(
@@ -179,11 +216,130 @@ def generate_response(prompt, temp=0.5):
     # Add streaming convos later
     return response.text
 
-#----APP----
-app = Flask(__name__)
-@app.route('/', methods=['GET','POST'])
+# Functions to retrieve tasks by intent
+def get_tasks_by_intent(intent_name):
+    cursor.execute("""
+        SELECT id, title, date, time, details, completed
+        FROM TASKS
+        WHERE intent = ?
+        ORDER BY completed ASC, timestamp DESC
+    """, (intent_name,))
+    tasks = [
+            {
+                "id": task_id,
+                "intent": intent_name,
+                "title": title,
+                "date": date,
+                "time": time,
+                "details": details,
+                "completed": completed
+            }
+            for task_id, title, date, time, details, completed
+            in cursor.fetchall()
+        ]
+    return tasks
 
+# Function to retrieve history from the database
+def load_history(limit=None):
+    query = """
+        SELECT id, user_input, response
+        FROM HISTORY
+        ORDER BY timestamp DESC
+    """
+
+    if limit is not None:
+        query += " LIMIT ?"
+        cursor.execute(query, (limit,))
+    else:
+        cursor.execute(query)
+
+    history = []
+
+    for history_id, user_input, response in cursor.fetchall():
+
+        cursor.execute("""
+            SELECT intent, title, date, time, details
+            FROM TASKS
+            WHERE history_id = ?
+        """, (history_id,))
+
+        tasks = [
+            {
+                "intent": intent,
+                "title": title,
+                "date": date,
+                "time": time,
+                "details": details
+            }
+            for intent, title, date, time, details
+            in cursor.fetchall()
+        ]
+
+        history.append({
+            "user_input": user_input,
+            "response": response,
+            "tasks": tasks
+        })
+
+    return history
+
+# Formatting functions for todos, deadlines, goals, and history
+def format_todos(todos):
+    if not todos:
+        return "No todos at the moment."
+    return "\n".join([f"{todo['title']}" for todo in todos])
+
+def format_deadlines(deadlines):
+    if not deadlines:
+        return "No upcoming deadlines."
+    return "\n".join([f"- {deadline['title']} - {deadline['date']} at {deadline['time']}" for deadline in deadlines])
+
+def format_goals(goals):
+    if not goals:
+        return "No goals set."
+    return "\n".join([f"- {goal['title']}" for goal in goals])
+
+def format_history(history):
+    if not history:
+        return "No recent conversation."
+    return "\n".join([f"User: {item['user_input']}\nBot: {item['response']}" for item in history])
+
+# Function to build context for the chatbot response
+def build_context():
+    todos = [t for t in get_tasks_by_intent("Todo") if not t["completed"]]
+    deadlines = [d for d in get_tasks_by_intent("Deadline") if d["date"] and d["time"] and not d["completed"]]
+    goals = get_tasks_by_intent("Goal")
+    history = load_history(limit=10)
+
+    context = f"""
+Current Dashboard
+
+Todos:
+{format_todos(todos)}
+
+Upcoming Deadlines:
+{format_deadlines(deadlines)}
+
+Goals:
+{format_goals(goals)}
+
+Recent Conversation:
+{format_history(history)}
+"""
+
+    return context
+
+# ----APP----
+app = Flask(__name__)
+
+# Home route to render the main page with tasks
+@app.route('/', methods=['GET','POST'])
 def home():
+    return render_template('index.html', todos=get_tasks_by_intent('Todo'), deadlines=get_tasks_by_intent('Deadline'), goals=get_tasks_by_intent('Goal'))  
+
+# Chat route to handle user input and generate responses
+@app.route("/chat", methods=["POST"])
+def chat():
     response_text=""
     user_input=""
     html_output=""
@@ -215,7 +371,8 @@ def home():
                 classified_tasks = classify_message(user_input)
 
                 # Get chatbot response
-                prompt = f"Chat History: {history}\n\nDetected Tasks: {classified_tasks['tasks']}\n\nUser Message: {user_input}"
+                context = build_context()
+                prompt = f"Current User Message: {user_input}\n\nDetected Tasks: {classified_tasks['tasks']}\n\n{context}"
                 response_text = f"{generate_response(prompt)}"
             except Exception as e:
                 print(e)
@@ -234,38 +391,64 @@ def home():
         html_output = markdown.markdown(response_text)
         print(html_output)
         # Save input and response in history
-        history.append({
-            "user_input": user_input,
-            "response": html_output,
-            "tasks": classified_tasks["tasks"]
-        })
+        cursor.execute(
+            "INSERT INTO HISTORY (user_input, response) VALUES (?, ?)",
+            (user_input, html_output)
+        )
+        history_id = cursor.lastrowid
+        for task in classified_tasks["tasks"]:
+            cursor.execute(
+                "INSERT INTO TASKS (history_id, intent, title, datetime, date, time, details) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (
+                    history_id,
+                    task["intent"],
+                    task.get("title"),
+                    task.get("datetime"),
+                    task.get("date"),
+                    task.get("time"),
+                    task.get("details")
+                )
+            )
+            task["id"] = cursor.lastrowid  # Store the task ID for later use
+        sqlite_connection.commit()      
 
         # Return chat response
         return jsonify({
             "response":html_output,
             "classification": classified_tasks
             })
-        
-    return render_template('index.html', output=html_output, user_input=user_input)    
+    
+# Route to update task completion status
+@app.route("/update_task", methods=["POST"])
+def update_task():
+    data = request.get_json()
 
+    cursor.execute(
+        "UPDATE TASKS SET completed=? WHERE id=?",
+        (data["completed"], data["id"])
+    )
+
+    sqlite_connection.commit()
+
+    return jsonify(success=True)
+
+# Route to render the history page with statistics
 @app.route('/history')
 def history_page():
 
     stats = {
-        "conversations": len(history),
+        "conversations": 0,
         "todos": 0,
         "deadlines": 0,
         "goals": 0
     }
 
-    for conversation in history:
-        for task in conversation["tasks"]:
-            if task["intent"] == "Todo":
-                stats["todos"] += 1
-            elif task["intent"] == "Deadline":
-                stats["deadlines"] += 1
-            elif task["intent"] == "Goal":
-                stats["goals"] += 1
+    stats["conversations"] = cursor.execute("SELECT COUNT(*) FROM HISTORY").fetchone()[0]
+    stats["todos"] = cursor.execute("SELECT COUNT(*) FROM TASKS WHERE intent='Todo'").fetchone()[0]
+    stats["deadlines"] = cursor.execute("SELECT COUNT(*) FROM TASKS WHERE intent='Deadline'").fetchone()[0]
+    stats["goals"] = cursor.execute("SELECT COUNT(*) FROM TASKS WHERE intent='Goal'").fetchone()[0]
+
+    history = load_history()
 
     return render_template('history.html', history=history, stats=stats)
 

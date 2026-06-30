@@ -191,8 +191,31 @@ h1{
 }
 
 .task-check{
-    margin-top:4px;
+    appearance:none;
+    width:20px;
+    height:20px;
+    border:2px solid #5FA8FF;
+    border-radius:6px;
+    background:#16213E;
     cursor:pointer;
+    transition:.2s;
+    flex-shrink:0;
+    margin-top:2px;
+}
+
+.task-check:checked{
+    background:#5FA8FF;
+    border-color:#5FA8FF;
+}
+
+.task-check:checked::after{
+    content:"✓";
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:white;
+    font-size:14px;
+    font-weight:bold;
 }
 
 .task-item{
@@ -200,10 +223,12 @@ h1{
     padding:10px;
     border-radius:10px;
     margin-bottom:10px;
+    transition:.2s;
 }
 
 .completed{
     opacity:.6;
+    transition:.2s;
 }
 
 .completed span,

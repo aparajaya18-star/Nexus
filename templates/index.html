@@ -23,13 +23,13 @@
             </div>
             <div class="lists">
 
-                <div class="deadline">
-                    <h2>Important Dates</h2>
+                <div class="event">
+                    <h2>Upcoming Events</h2>
 
                     <ul class="task-list">
-                    {% if deadlines %}
+                    {% if events %}
 
-                        {% for item in deadlines %}
+                        {% for item in events %}
                         <li class="task-item {% if item.completed %}completed{% endif %}">
                             <label class="task-entry">
                                 <input
@@ -61,7 +61,7 @@
                 </div>
 
                 <div class="todo">
-                    <h2>To Do</h2>
+                    <h2>Today's Tasks</h2>
                     <ul class="task-list">
                         {% if todos %}
                             {% for item in todos %}
@@ -115,13 +115,40 @@
                 </div>
 
             </div>
+
+            <div class="calendar-container" aria-label="Calendar">
+                <div class="calendar-header">
+                    <button id="prev-month">‹</button>
+                    <h2 class="month-year">
+                        <span id="calendar-month">{{ current_month }}</span>
+                        <span id="calendar-year">{{ current_year }}</span>
+                    </h2>
+                    <button id="next-month">›</button>  
+                </div>
+            
+                <div class="calendar-grid">
+                    <div class="calendar-weekdays">
+                        <div>Sun</div>
+                        <div>Mon</div>
+                        <div>Tue</div>
+                        <div>Wed</div>
+                        <div>Thu</div>
+                        <div>Fri</div>
+                        <div>Sat</div>
+                    </div>
+                    <div class="calendar-days" id="calendar-days">
+                        <!-- Days will be populated here by JavaScript -->
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="history-btn">
             <a href="/history">View History →</a>
         </div>
         <script src="{{ url_for('static', filename='js/chat.js') }}" defer></script>
-    </body>
+        <script src="{{ url_for('static', filename='js/calendar.js') }}" defer></script>
     <footer>
         © 2026 Aparajaya · Nexus
     </footer>
+    </body>
 </html>

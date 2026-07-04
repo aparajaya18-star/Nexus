@@ -80,7 +80,7 @@ const addItemToList = (item) => {
             `;
             break;
 
-        case "Deadline":
+        case "Event":
             taskLi.innerHTML = `
                 <label class="task-entry">
                     <input type="checkbox" class="task-check" data-id="${item.id}">

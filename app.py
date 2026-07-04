@@ -24,7 +24,7 @@ Extract every distinct task separately.
 
 Classify each task into exactly one of these intents:
 - Todo
-- Deadline
+- Event
 - Goal
 - Chat
 
@@ -34,7 +34,7 @@ Return ONLY valid JSON matching the provided schema.
 
 Rules:
 - If the user is adding something they need to do, use "Todo".
-- If the user mentions a due date, appointment, exam, meeting, or specific time, use "Deadline".
+- If the user mentions a due date, appointment, exam, meeting, or specific time, use "Event".
 - If the user describes a long-term aspiration or milestone, use "Goal".
 - Otherwise use "Chat".
 
@@ -79,7 +79,7 @@ response_schema = {
                 "properties": {
                     "intent": {
                         "type": "string",
-                        "enum": ["Todo", "Deadline", "Goal", "Chat"]
+                        "enum": ["Todo", "Event", "Goal", "Chat"]
                     },
                     "title": {
                         "type": ["string", "null"]
@@ -118,7 +118,7 @@ Respond naturally and conversationally.
 
 If the intent is:
 - Todo: acknowledge that the task has been added.
-- Deadline: acknowledge the deadline and encourage the user.
+- Event: acknowledge the event and provide any relevant details.
 - Goal: congratulate them on setting a goal and offer help if appropriate.
 - Chat: simply answer normally.
 
@@ -289,10 +289,10 @@ def format_todos(todos):
         return "No todos at the moment."
     return "\n".join([f"{todo['title']}" for todo in todos])
 
-def format_deadlines(deadlines):
-    if not deadlines:
-        return "No upcoming deadlines."
-    return "\n".join([f"- {deadline['title']} - {deadline['date']} at {deadline['time']}" for deadline in deadlines])
+def format_events(events):
+    if not events:
+        return "No upcoming events."
+    return "\n".join([f"- {event['title']} - {event['date']} at {event['time']}" for event in events])
 
 def format_goals(goals):
     if not goals:
@@ -307,7 +307,7 @@ def format_history(history):
 # Function to build context for the chatbot response
 def build_context():
     todos = [t for t in get_tasks_by_intent("Todo") if not t["completed"]]
-    deadlines = [d for d in get_tasks_by_intent("Deadline") if d["date"] and d["time"] and not d["completed"]]
+    events = [e for e in get_tasks_by_intent("Event") if e["date"] and e["time"] and not e["completed"]]
     goals = get_tasks_by_intent("Goal")
     history = load_history(limit=10)
 
@@ -317,8 +317,8 @@ Current Dashboard
 Todos:
 {format_todos(todos)}
 
-Upcoming Deadlines:
-{format_deadlines(deadlines)}
+Upcoming Events:
+{format_events(events)}
 
 Goals:
 {format_goals(goals)}
@@ -335,7 +335,7 @@ app = Flask(__name__)
 # Home route to render the main page with tasks
 @app.route('/', methods=['GET','POST'])
 def home():
-    return render_template('index.html', todos=get_tasks_by_intent('Todo'), deadlines=get_tasks_by_intent('Deadline'), goals=get_tasks_by_intent('Goal'))  
+    return render_template('index.html', todos=get_tasks_by_intent('Todo'), events=get_tasks_by_intent('Event'), goals=get_tasks_by_intent('Goal'))  
 
 # Chat route to handle user input and generate responses
 @app.route("/chat", methods=["POST"])
@@ -432,6 +432,31 @@ def update_task():
 
     return jsonify(success=True)
 
+# Route to send events to Calendar
+@app.route("/calendar", methods=["POST"])
+def calendar():
+    data = request.get_json()
+    month = data.get("month")
+    year = data.get("year")
+    # Sort events by month and year and save title and time(if saved)
+    events = cursor.execute(
+        "SELECT title, date, time, details, datetime from TASKS WHERE intent='Event' AND completed=0 AND datetime LIKE ? ORDER BY datetime ASC",
+        (f"%{year}-{month:02d}%",)
+    ).fetchall()
+
+    dict_events = {}
+    for event in events:
+        day = int(event[4][8:10])
+        dict_events.setdefault(day, [])
+        dict_events[day].append({
+            "title": event[0],
+            "time": event[2] if event[2] else "All Day",
+            "date": event[1],
+            "details": event[3] if event[3] else ""
+        })
+
+    return jsonify(dict_events)
+
 # Route to render the history page with statistics
 @app.route('/history')
 def history_page():
@@ -439,13 +464,13 @@ def history_page():
     stats = {
         "conversations": 0,
         "todos": 0,
-        "deadlines": 0,
+        "events": 0,
         "goals": 0
     }
 
     stats["conversations"] = cursor.execute("SELECT COUNT(*) FROM HISTORY").fetchone()[0]
     stats["todos"] = cursor.execute("SELECT COUNT(*) FROM TASKS WHERE intent='Todo'").fetchone()[0]
-    stats["deadlines"] = cursor.execute("SELECT COUNT(*) FROM TASKS WHERE intent='Deadline'").fetchone()[0]
+    stats["events"] = cursor.execute("SELECT COUNT(*) FROM TASKS WHERE intent='Event'").fetchone()[0]
     stats["goals"] = cursor.execute("SELECT COUNT(*) FROM TASKS WHERE intent='Goal'").fetchone()[0]
 
     history = load_history()

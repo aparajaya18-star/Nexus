@@ -7,7 +7,6 @@ sqlite_connection = sqlite3.connect('data/dashboard_history.db', check_same_thre
 cursor = sqlite_connection.cursor()
 
 def setup_db():
-
     # Create tables for history and tasks
     query_chat_history = """
     CREATE TABLE IF NOT EXISTS HISTORY (

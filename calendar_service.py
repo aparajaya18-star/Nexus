@@ -1,9 +1,10 @@
 # Handle all calendar functions
 from utils import format_date, format_time
 from datetime import datetime
-from database import cursor
+from database import sqlite_connection
 
 def get_calendar_events(month, year):
+    cursor = sqlite_connection.cursor()
     # Sort events by month and year and save title and time(if saved)
     events = cursor.execute(
         "SELECT title, due_datetime, details, category, priority from TASKS WHERE intent='Event' AND completed=0 AND due_datetime LIKE ? ORDER BY due_datetime ASC",

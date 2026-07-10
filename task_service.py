@@ -1,28 +1,34 @@
 # Handle all tasks
-from database import cursor
+import re
+from database import sqlite_connection
+from utils import format_date, format_time
+
+cursor = sqlite_connection.cursor()
+
+def serialize_task(row):
+    return {
+                "id": row[0],
+                "intent": row[1],
+                "title": row[2],
+                "due_datetime": row[3] or "",
+                "date": format_date(row[3]) or "",
+                "time": format_time(row[3]) or "",
+                "details": row[4] or "",
+                "category": row[5] or "",
+                "priority": row[6] or "",
+                "completed": row[7]
+            }
+                
 
 def get_todos():
     cursor.execute("""
-        SELECT id, intent, title, due_datetime, details, priority, completed
+        SELECT id, intent, title, due_datetime, details, category, priority, completed
         FROM TASKS
         WHERE intent = "Todo"
         AND created_at >= datetime('now', '-7 days')
         ORDER BY completed ASC, created_at DESC
     """)
-    todos = [
-            {
-                "id": task_id,
-                "intent": intent,
-                "title": title,
-                "due_datetime": due_datetime,
-                "details": details,
-                "priority": priority,
-                "completed": completed
-            }
-            for task_id, intent, title, due_datetime, details, priority, completed
-            in cursor.fetchall()
-        ]
-    return todos
+    return [serialize_task(row) for row in cursor.fetchall()]
 
 def get_events():
     cursor.execute("""
@@ -32,73 +38,34 @@ def get_events():
         AND due_datetime >= datetime('now')
         ORDER BY completed ASC, created_at DESC
     """)
-    events = [
-            {
-                "id": task_id,
-                "intent": intent,
-                "title": title,
-                "due_datetime": due_datetime,
-                "details": details,
-                "category": category,
-                "priority": priority,
-                "completed": completed
-            }
-            for task_id, intent, title, due_datetime, details, category, priority, completed
-            in cursor.fetchall()
-        ]
-    return events
+    return [serialize_task(row) for row in cursor.fetchall()]
 
 def get_goals():
     cursor.execute("""
-        SELECT id, intent, title, due_datetime, details, priority, completed
+        SELECT id, intent, title, due_datetime, details, category, priority, completed
         FROM TASKS
         WHERE intent = "Goal"
         ORDER BY completed ASC, created_at DESC
     """ )
 
-    goals = [
-            {
-            "id": task_id,
-                "intent": intent,
-                "title": title,
-                "due_datetime": due_datetime,
-                "details": details,
-                "priority": priority,
-                "completed": completed
-            }
-            for task_id, intent, title, due_datetime, details, priority, completed
-            in cursor.fetchall()
-        ]
-    return goals
+    return [serialize_task(row) for row in cursor.fetchall()]
 
 def get_overdue():
 
     # Sorting overdue tasks
     cursor.execute("""
-        SELECT id, title, due_datetime, details, priority, completed
+        SELECT id, intent, title, due_datetime, details, category, priority, completed
         FROM TASKS
         WHERE intent = "Todo"
         AND completed = 0
         AND created_at < datetime('now', '-7 days')
         ORDER BY completed ASC, created_at DESC
     """)
-    overdue_todos = [
-            {
-                "id": task_id,
-                "intent": "Todo",
-                "title": title,
-                "due_datetime": due_datetime,
-                "details": details,
-                "priority": priority,
-                "completed": completed
-            }
-            for task_id, title, due_datetime, details, priority, completed
-            in cursor.fetchall()
-        ] 
+    overdue_todos = [serialize_task(row) for row in cursor.fetchall()]
 
     # Sorting overdue events
     cursor.execute("""
-        SELECT id, title, due_datetime, details, priority, completed
+        SELECT id, intent, title, due_datetime, details, category, priority, completed
         FROM TASKS
         WHERE intent = "Event"
         AND completed = 0
@@ -106,19 +73,7 @@ def get_overdue():
         AND due_datetime < datetime('now')
         ORDER BY completed ASC, created_at DESC
     """)
-    overdue_events = [
-            {
-                "id": task_id,
-                "intent": "Event",
-                "title": title,
-                "due_datetime": due_datetime,
-                "details": details,
-                "priority": priority,
-                "completed": completed
-            }
-            for task_id, title, due_datetime, details, priority, completed
-            in cursor.fetchall()
-        ] 
+    overdue_events = [serialize_task(row) for row in cursor.fetchall()]
     
     overdue_events.extend(overdue_todos)
     return overdue_events

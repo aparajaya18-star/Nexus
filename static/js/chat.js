@@ -4,20 +4,148 @@ const sendChatBtn =
     document.querySelector(".chat-input button");
 const chatbox = document.querySelector('.chatbox')
 const url = "/chat";
-let userMessage;
+let userMessage; 
+
+// ----- Rendering Lists Logic -----
+
+async function refreshDashboard(){
+    // Get fresh lists from database
+    const response = await fetch ("/task",{
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        });
+    const data = await response.json();
+
+    // Clear old list
+    clearLists();
+
+    // Add new items to all lists
+    renderList("todo",data.todos);
+    renderList("event",data.events);
+    renderList("goal",data.goals);
+    renderList("overdue",data.overdue);
+}
+
+function clearLists() {
+    document.querySelectorAll(".task-list").forEach(list => {
+        list.innerHTML = "";
+    });
+}
+
+function getHTML(item, list_type)
+{
+    switch(list_type)
+    {
+        case "todo":
+            return `
+            <label class="task-entry">
+                <input
+                        type="checkbox"
+                        class="task-check"
+                        data-id="${item.id}"
+                        ${item.completed ? "checked" : ""}>
+                <span>${item.title}</span>
+            </label>
+            `;
+        case "event":
+            return `
+                <label class="task-entry">
+                    <input
+                        type="checkbox"
+                        class="task-check"
+                        data-id="${item.id}"
+                        ${item.completed ? "checked" : ""}>
+                    <div>
+                        <strong>${item.title}</strong><br>
+                        📅 ${item.date ?? "-"}<br>
+                        ${item.time ? `<br>🕒 ${item.time}` : ""}
+                    </div>
+                </label>
+            `;
+        case "goal":
+            return `
+                <label class="task-entry">
+                    <input
+                        type="checkbox"
+                        class="task-check"
+                        data-id="${item.id}"
+                        ${item.completed ? "checked" : ""}>
+                    <div>
+                        <strong>🎯 ${item.title}</strong>
+                        ${item.details ? `<br>${item.details}` : ""}
+                    </div>
+                </label>
+            `;
+        case "overdue":
+            return `
+                <label class="task-entry">
+                    <input
+                        type="checkbox"
+                        class="task-check"
+                        data-id="${item.id}"
+                        ${item.completed ? "checked" : ""}>
+                    <div>
+                        <strong>🛑 ${item.title}</strong>
+                        ${item.details ? `<br>${item.details}` : ""}
+                        ${item.date ? `<br>${item.date}` : ""}
+                        ${item.time ? `<br>${item.time}` : ""}
+                    </div>
+                </label>
+            `;
+        default:
+            throw new Error(`Unknown list type: ${list_type}`);
+    }
+    
+}
+
+function createTaskElement(item, listType) {
+    const taskLi = document.createElement("li");
+    taskLi.classList.add("task-item");
+    taskLi.innerHTML = getHTML(item, listType);
+
+    if (item.completed) {
+        taskLi.classList.add("completed");
+    }
+
+    const checkbox = taskLi.querySelector(".task-check");
+    checkbox.addEventListener("change", () => handleCheckboxChange(checkbox));
+
+    return taskLi;
+}
+
+function renderPlaceholder(list, listName) {
+    const placeholder_text = {
+        "todo": "No tasks today.",
+        "event": "No upcoming events.",
+        "goal": "No goals.",
+        "overdue": "Nothing overdue 🎉"
+    }
+    const li = document.createElement("li");
+    li.classList.add("placeholder");
+    li.textContent = placeholder_text[listName];
+    list.appendChild(li);
+}
+
+function renderList(listName, items) {
+    const list = document.querySelector(`.${listName} .task-list`);
+
+    if (!items.length) {
+        renderPlaceholder(list, listName);
+        return;
+    }
+
+    for (const item of items) {
+        list.appendChild(createTaskElement(item, listName));
+    }
+}
+
+// ----- Task Update Logic ----
 
 // Function to handle checkbox change event
 async function handleCheckboxChange(checkbox) {
-    taskLi = checkbox.closest(".task-item");
-    taskLi.classList.toggle("completed", checkbox.checked);
-
-    // Move completed items to bottom
-    const list = taskLi.closest(".task-list");
-    if (checkbox.checked) {
-        list.appendChild(taskLi);      // move to bottom
-    } else {
-        list.prepend(taskLi);          // move back to top
-    }
+    const taskLi = checkbox.closest(".task-item");
 
     // Send update to server
     await fetch("/update_task", {
@@ -30,91 +158,18 @@ async function handleCheckboxChange(checkbox) {
             completed: checkbox.checked
         })
     });
-    }
 
-// Function to maintain checked state of checkboxes and attach event listeners upon page load
-function attachCheckboxListener()
-{
-    const checkboxes = document.querySelectorAll(".task-check");
-    checkboxes.forEach((checkbox) => {
-        checkbox.addEventListener("change", () => {
-            handleCheckboxChange(checkbox);
-        });
-    });
+    // Refresh Dashboard according to changes
+    refreshDashboard()
 }
 
-// Attach event listener to checkboxes on page load
+
+// Reload dashboard on refresh
 document.addEventListener("DOMContentLoaded", (event) => {
-    attachCheckboxListener();
+    refreshDashboard();
 });
 
-const createChatLi = (message, className) => {
-    const chatLi = document.createElement("li");
-    chatLi.classList.add("chat", className);
-    let chatContent = 
-        className === "chat-outgoing" ? `<p>${message}</p>` : `<p>${message}</p>`;
-    chatLi.innerHTML = chatContent;
-    return chatLi;
-}
-
-const addItemToList = (item) => {
-
-    const list = document.querySelector(`.${item.intent.toLowerCase()} .task-list`);
-
-    // Remove placeholder if it exists
-    const placeholder = list.querySelector(".placeholder");
-    if (placeholder) placeholder.remove();
-
-    const taskLi = document.createElement("li");
-    taskLi.classList.add("task-item");
-
-    // Add new item to list based on intent
-    switch(item.intent){
-
-        case "Todo":
-            taskLi.innerHTML = `
-                <label class="task-entry">
-                    <input type="checkbox" class="task-check" data-id="${item.id}">
-                    <span>${item.title}</span>
-                </label>
-            `;
-            break;
-
-        case "Event":
-            taskLi.innerHTML = `
-                <label class="task-entry">
-                    <input type="checkbox" class="task-check" data-id="${item.id}">
-                    <div>
-                        <strong>${item.title}</strong><br>
-                        📅 ${item.date ?? "-"}<br>
-                        🕒 ${item.time ?? "-"}
-                    </div>
-                </label>
-            `;
-            break;
-
-        case "Goal":
-            taskLi.innerHTML = `
-                <label class="task-entry">
-                    <input type="checkbox" class="task-check" data-id="${item.id}">
-                    <div>
-                        <strong>🎯 ${item.title}</strong>
-                        ${item.details ? `<br>${item.details}` : ""}
-                    </div>
-                </label>
-            `;
-            break;
-    }
-
-    // Checkbox event
-    const checkbox = taskLi.querySelector(".task-check");
-
-    checkbox.addEventListener("change", () => {
-        handleCheckboxChange(checkbox)
-    });
-
-    list.appendChild(taskLi);
-}
+// ----- Chat Related Logic -----
 
 const  handleChat = async () => {
     // Read User Message and clear it from input field
@@ -156,21 +211,22 @@ const  handleChat = async () => {
         incomingChatLi.querySelector("p").innerHTML = data.response;
 
         // Update lists Appropriately
-        for (const task of data.classification.tasks) {
-            if (
-                task &&
-                task.intent &&
-                task.intent !== "Chat"
-                ) {
-                    addItemToList(task);
-                }
-        }   
+        refreshDashboard();
     }
     catch(error){
         incomingChatLi.querySelector("p").textContent =
         "Sorry, something went wrong.";;
     }
 
+}
+
+const createChatLi = (message, className) => {
+    const chatLi = document.createElement("li");
+    chatLi.classList.add("chat", className);
+    let chatContent = 
+        className === "chat-outgoing" ? `<p>${message}</p>` : `<p>${message}</p>`;
+    chatLi.innerHTML = chatContent;
+    return chatLi;
 }
 
 sendChatBtn.addEventListener("click", handleChat);

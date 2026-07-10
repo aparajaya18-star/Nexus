@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html>  
     <head>
         <title>Nexus</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -25,92 +25,25 @@
 
                 <div class="event">
                     <h2>Upcoming Events</h2>
-
                     <ul class="task-list">
-                    {% if events %}
-
-                        {% for item in events %}
-                        <li class="task-item {% if item.completed %}completed{% endif %}">
-                            <label class="task-entry">
-                                <input
-                                    type="checkbox"
-                                    class="task-check"
-                                    data-id="{{ item.id }}"
-                                    {% if item.completed %}checked{% endif %}
-                                >
-
-                                <div>
-                                    <strong>{{ item.title }}</strong><br>
-
-                                    {% if item.date %}
-                                        📅 {{ item.date }}<br>
-                                    {% endif %}
-
-                                    {% if item.time %}
-                                        🕒 {{ item.time }}
-                                    {% endif %}
-                                </div>
-                            </label>
-                        </li>
-                        {% endfor %}
-
-                    {% else %}
-                        <li class="placeholder">Nothing here yet</li>
-                    {% endif %}
                     </ul>
                 </div>
 
                 <div class="todo">
                     <h2>Today's Focus</h2>
                     <ul class="task-list">
-                        {% if todos %}
-                            {% for item in todos %}
-                            <li class="task-item {% if item.completed %}completed{% endif %}">
-                                <label class="task-entry">
-                                    <input
-                                        type="checkbox"
-                                        class="task-check"
-                                        data-id="{{ item.id }}"
-                                        {% if item.completed %}checked{% endif %}
-                                    >
-                                    <div>
-                                        <span>{{ item.title }}</span>
-                                    </div>
-                                </label>
-                            </li>
-                            {% endfor %}
-                        {% else %}
-                            <li class="placeholder">Nothing here yet</li>
-                        {% endif %}
                     </ul>
                 </div>
 
                 <div class="goal">
                     <h2>Goals</h2>
                     <ul class="task-list">
-                        {% if goals %}
-                            {% for item in goals %}
-                            <li class="task-item {% if item.completed %}completed{% endif %}">
-                                <label class="task-entry">
-                                    <input
-                                        type="checkbox"
-                                        class="task-check"
-                                        data-id="{{ item.id }}"
-                                        {% if item.completed %}checked{% endif %}
-                                    >
-                                    <div>
-                                        <strong>🎯 {{ item.title }}</strong>
-                                        {% if item.details %}
-                                            <br>
-                                            {{ item.details }}
-                                        {% endif %}
-                                    </div>
-                                </label>
-                            </li>
-                            {% endfor %}
-                        {% else %}
-                            <li class="placeholder">Nothing here yet</li>
-                        {% endif %}
+                    </ul>
+                </div>
+
+                <div class="overdue">
+                    <h2>Overdue Tasks</h2>
+                    <ul class="task-list">
                     </ul>
                 </div>
 

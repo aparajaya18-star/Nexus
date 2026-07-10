@@ -51,10 +51,8 @@ def chat():
             })
     
 # Route to handle tasks
-@app.route("/task", methods=["POST"])
+@app.route("/task", methods=["GET"])
 def handle_task():
-    data = request.get_json()
-
     return jsonify({
         "todos": get_todos(),
         "events": get_events(),
@@ -63,10 +61,11 @@ def handle_task():
     }
     )
     
-@app.route("/update_tasks", methods=["POST"] )
+@app.route("/update_task", methods=["POST"] )
 def update_task():
     # Update Tasks
     data = request.get_json()
+    print(data)
 
     cursor.execute(
         "UPDATE TASKS SET completed=? WHERE id=?",
@@ -74,6 +73,12 @@ def update_task():
     )
 
     sqlite_connection.commit()
+
+    cursor.execute(
+        "SELECT id, completed, typeof(completed) FROM TASKS WHERE id=?",
+        (data["id"],)
+    )
+    print(cursor.fetchone())
 
     return jsonify(success=True)
 

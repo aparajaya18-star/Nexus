@@ -50,7 +50,7 @@ async function renderCalendar(month=displayedMonth, year=displayedYear) {
 
         if (events && events.length > 0) {
             dayCell.classList.add("has-event");
-
+ 
             // Create a preview of events for the day
             const eventPreview = document.createElement("div");
             eventPreview.classList.add("event-preview");;

@@ -1,0 +1,150 @@
+/* Color Scheme */
+:root{
+    --bg:#0B1120;
+
+    --card:#16213E;
+    --card-hover:#1D3557;
+
+    --surface:#23395D;
+    --surface-hover:#2E4F74;
+
+    --accent:#5FA8FF;
+    --accent-light:#BFD8FF;
+
+    --text:#EAF4FF;
+    --text-secondary:#8FAFD6;
+
+    --border:#2E4F74;
+
+    --shadow:0 8px 24px rgba(0,0,0,.35);
+}
+
+/* General */
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+body{
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+h1{
+    margin:30px 0;
+    font-size:2.5rem;
+    color:var(--text);
+}
+
+/* Header */
+.page-header{
+    text-align:center;
+    margin-top:30px;
+}
+
+.page-header h1{
+    margin-bottom:6px;
+}
+
+.page-header h3{
+    color:var(--text-secondary);
+    font-weight:400;
+}
+
+/* Navbar */
+.navbar-container{
+    position:fixed;
+    top:20px;
+    left:20px;
+    z-index:1000;
+}
+
+.navbar{
+    width:48px;
+    height:48px;
+
+    border:none;
+    border-radius:14px;
+
+    background:var(--card);
+    color:var(--text);
+
+    font-size:1.4rem;
+    cursor:pointer;
+
+    border:1px solid var(--border);
+    box-shadow:0 8px 24px var(--shadow);
+
+    transition:.2s;
+}
+
+.navbar:hover{
+    background:var(--surface);
+    transform:translateY(-2px);
+}
+
+.navbar:active{
+    transform:scale(.95);
+}
+
+.navbar-options{
+    position:absolute;
+
+    top:58px;
+    left:0;
+
+    width:220px;
+
+    background:var(--card);
+
+    border:1px solid var(--border);
+    border-radius:18px;
+
+    padding:8px;
+
+    box-shadow:0 14px 30px var(--shadow);
+
+    opacity:0;
+    visibility:hidden;
+    transform:translateY(-8px);
+
+    transition:.2s;
+}
+
+.navbar-options.open{
+    opacity:1;
+    visibility:visible;
+    transform:translateY(0);
+}
+
+.navbar-options a{
+    display:block;
+
+    padding:12px 14px;
+
+    border-radius:12px;
+
+    color:var(--text);
+    text-decoration:none;
+
+    transition:.2s;
+}
+
+.navbar-options a:hover{
+    background:var(--surface);
+    color:var(--text);
+}
+
+/* Footer */
+footer{
+    margin-top:25px;
+    margin-bottom:15px;
+    color:var(--text-secondary);
+    font-size:.9rem;
+}

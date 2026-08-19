@@ -3,15 +3,26 @@
 <head>
     <title>Nexus • History</title>
     <link rel="stylesheet"
+      href="{{ url_for('static', filename='css/common.css') }}">
+    <link rel="stylesheet"
           href="{{ url_for('static', filename='css/history.css') }}">
 </head>
 
 <body>
+    <div class="navbar-container">
+            <button type="button" class="navbar">☰</button>
+            <nav class="navbar-options">
+                <a href="/">Home</a>
+                <a href="/history">History</a>
+                <a href="/analytics">Analytics</a>
+                <a href="/settings">Settings</a>
+            </nav>
+        </div>
 
-    <div class="top-bar">
-        <a href="/" class="back-btn">← Dashboard</a>
+    <header class="page-header">
         <h1>Conversation History</h1>
-    </div>
+        <h3>Your interactions and extracted tasks ✦︎</h3>
+    </header>
 
     <div class="summary-grid">
 
@@ -29,8 +40,8 @@
 
         <div class="summary-card">
             <h3>📅</h3>
-            <span>{{ stats.deadlines }}</span>
-            <p>Deadlines</p>
+            <span>{{ stats.events }}</span>
+            <p>Events</p>
         </div>
 
         <div class="summary-card">
@@ -104,6 +115,9 @@
     {% endif %}
 
     </div>
-
+    <script src="{{ url_for('static', filename='js/navbar.js') }}" defer></script>
+    <footer>
+        © 2026 Aparajaya · Nexus
+    </footer>
 </body>
 </html>

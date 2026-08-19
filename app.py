@@ -115,6 +115,14 @@ def history_page():
 
     return render_template('history.html', history=history, stats=stats)
 
+@app.route('/analytics')
+def analytics_page():
+    return render_template('analytics.html')
+
+@app.route('/settings')
+def settings_page():
+    return render_template('settings.html')
+
 if __name__ == '__main__':
     app.run(debug=True)
 #----APP----

@@ -2,15 +2,29 @@
 <html>  
     <head>
         <title>Nexus</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
     </head>
     <body>
-        <h1>Nexus</h1>
-        <div class="dashboard">
-            <div class="chat-bot">
-                <header>
+        <div class="navbar-container">
+            <button type="button" class="navbar">☰</button>
+            <nav class="navbar-options">
+                <a href="/">Home</a>
+                <a href="/history">History</a>
+                <a href="/analytics">Analytics</a>
+                <a href="/settings">Settings</a>
+            </nav>
+        </div>
+        <header class="page-header">
+            <h1>Nexus</h1>
+            <h3>Connecting your everyday ✦︎</h3>
+        </header>
+        <main class="dashboard">
+            <section class="dashboard-card chat-bot">
+            
+                <div class="chat-header">
                     <h2>⁺₊✧ Nexus</h2>
-                </header>
+                </div>
                 <ul class="chatbox">
                     <li class="chat-incoming chat">
                         <p>How can I assist you today?</p>
@@ -20,36 +34,17 @@
                     <textarea rows="0" cols="17" placeholder="Enter a message"></textarea>
                     <button id="send-btn">></button>
                 </div>
-            </div>
-            <div class="lists">
 
-                <div class="event">
-                    <h2>Upcoming Events</h2>
-                    <ul class="task-list">
-                    </ul>
-                </div>
+            </section>
 
-                <div class="todo">
-                    <h2>Today's Focus</h2>
-                    <ul class="task-list">
-                    </ul>
-                </div>
+            <!-- Placeholder -->
+            <section class="dashboard-card profile">
+                <h2>Level 3</h2>
+                <span>4 day streak</span>
+            </section>
+            
+            <section class="dashboard-card calendar-container">
 
-                <div class="goal">
-                    <h2>Goals</h2>
-                    <ul class="task-list">
-                    </ul>
-                </div>
-
-                <div class="overdue">
-                    <h2>Overdue Tasks</h2>
-                    <ul class="task-list">
-                    </ul>
-                </div>
-
-            </div>
-
-            <div class="calendar-container" aria-label="Calendar">
                 <div class="calendar-header">
                     <button id="prev-month">‹</button>
                     <h2 class="month-year">
@@ -58,7 +53,7 @@
                     </h2>
                     <button id="next-month">›</button>  
                 </div>
-            
+        
                 <div class="calendar-grid">
                     <div class="calendar-weekdays">
                         <div>Sun</div>
@@ -73,13 +68,93 @@
                         <!-- Days will be populated here by JavaScript -->
                     </div>
                 </div>
-            </div>
-        </div>
-        <div class="history-btn">
-            <a href="/history">View History →</a>
-        </div>
+
+            </section>
+
+            <section class="dashboard-card overdue">
+                <h2>Overdue Tasks</h2>
+                <ul class="task-list">
+                </ul>
+            </section>
+
+            <section class="dashboard-card event">
+                <h2>Upcoming Events</h2>
+                <ul class="task-list">
+                </ul>
+            </section>
+
+            <section class="dashboard-card goal">
+                    <h2>Goals</h2>
+                    <ul class="task-list">
+                    </ul>
+            </section>
+
+            <section class="dashboard-card clock">
+                <div class="clock-mode">
+                    <div class="clock-info">
+                        <div id="clock-time">00:00 AM</div>
+                        <div id="clock-date">Loading date...</div>
+                    </div>
+
+                    <button id="clock-toggle" data-state="clock">
+                        Set Timer →
+                    </button>
+                </div>
+                <div class="timer-mode">
+                    <div class="buttons-container">
+                        <button type="button" id="pomodoro-session">Pomodoro</button>
+                        <button type="button" id="short-break">Short Break</button>
+                        <button type="button" id="long-break">Long Break</button>
+                    </div>
+                    <div class="pomodoro">
+                        <div id="pomodoro-timer" class="timer-display" data-duration="25">
+                            <h2 class="time">25:00</h2>
+                        </div>
+
+                        <div id="short-timer" class="timer-display" data-duration="5">
+                            <h2 class="time">5:00</h2>
+                        </div>
+
+                        <div id="long-timer" class="timer-display" data-duration="10">
+                            <h2 class="time">10:00</h2>
+                        </div>
+                    </div>
+                    <div class="controls">
+                        <button type="button" id="pause-button">⏸</button>
+                        <button type="button" id="start-button">▶</button>
+                        <button type="button" id="reset-button">↺</button>
+                    </div>
+                    <button id="timer-toggle" data-state="timer">← Clock</button>
+                </div>
+                <div id="timer-complete" class="timer-modal">
+                    <div class="timer-modal-content">
+                        <h2>✦ Timer Completed!</h2>
+                        <p>Nice work. Your timer has finished.</p>
+                        <button id="close-complete">Continue</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="dashboard-card todo">
+                <h2>Today's Focus</h2>
+                <ul class="task-list">
+                </ul>
+            </section>
+
+            <section class="dashboard-card budget">
+                <h2>Budget Tracker</h2>
+                <ul class="budget-list">
+
+                </ul>
+                <div class="tips">
+                </div>
+            </section>
+
+        </main>
+        <script src="{{ url_for('static', filename='js/navbar.js') }}" defer></script>
         <script src="{{ url_for('static', filename='js/chat.js') }}" defer></script>
         <script src="{{ url_for('static', filename='js/calendar.js') }}" defer></script>
+        <script src="{{ url_for('static', filename='js/clock.js') }}" defer></script>
     <footer>
         © 2026 Aparajaya · Nexus
     </footer>

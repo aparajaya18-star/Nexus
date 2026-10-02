@@ -9,6 +9,12 @@ from task_service import get_todos, get_events, get_goals, get_overdue
 from history_service import load_history, save_history
 from calendar_service import get_calendar_events
 from chat import get_chat_response
+from budget_service import (
+    get_budget_summary,
+    set_monthly_budget,
+    add_expense,
+    delete_expense
+)
 
 
 load_dotenv()
@@ -122,6 +128,66 @@ def analytics_page():
 @app.route('/settings')
 def settings_page():
     return render_template('settings.html')
+
+# -------- Budget API --------
+
+@app.route("/budget/data", methods=["GET"])
+def budget_data():
+    return jsonify(get_budget_summary())
+
+
+@app.route("/budget", methods=["POST"])
+def update_budget():
+    data = request.get_json()
+
+    amount = float(data["amount"])
+
+    if amount <= 0:
+        return jsonify({
+            "error": "Budget must be greater than zero."
+        }), 400
+
+    set_monthly_budget(amount)
+
+    return jsonify(success=True)
+
+
+@app.route("/budget/expense", methods=["POST"])
+def create_expense():
+    data = request.get_json()
+
+    description = data["description"].strip()
+    amount = float(data["amount"])
+    category = data["category"]
+    expense_date = data["date"]
+
+    if not description or amount <= 0 or not expense_date:
+        return jsonify({
+            "error": "Invalid expense data."
+        }), 400
+
+    expense_id = add_expense(
+        description,
+        amount,
+        category,
+        expense_date
+    )
+
+    return jsonify({
+        "success": True,
+        "id": expense_id
+    })
+
+
+@app.route("/budget/expense/<int:expense_id>", methods=["DELETE"])
+def remove_expense(expense_id):
+    delete_expense(expense_id)
+
+    return jsonify(success=True)
+
+@app.route('/budget')
+def budget_page():
+    return render_template('budget.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

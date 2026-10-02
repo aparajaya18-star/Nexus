@@ -727,9 +727,130 @@
 }
 
 /* Budget Tracker */
-.budget{
-    grid-column:1 / -1;
 
-    min-height:220px;
+.budget {
+    grid-column: 1 / -1;
 }
 
+.budget-widget-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.budget-widget-link .budget {
+    cursor: pointer;
+}
+
+.budget-widget-link .budget:hover {
+    transform: translateY(-2px);
+}
+
+.budget-header {
+    margin-bottom: 5px;
+}
+
+.budget-content {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: 40px;
+    align-items: center;
+}
+
+.budget-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.budget-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.budget-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.budget-stat strong {
+    font-size: 1.5rem;
+    color: var(--text);
+}
+
+.budget-progress {
+    width: 100%;
+    height: 8px;
+    background: var(--surface);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 6px;
+}
+
+#budget-progress-bar {
+    height: 100%;
+    width: 55%;
+    background: var(--accent);
+    border-radius: inherit;
+}
+
+#budget-percentage {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.budget-note {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.budget-note strong {
+    color: var(--accent-light);
+}
+
+.budget-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.budget-categories h3 {
+    margin: 0 0 4px;
+    font-size: 1rem;
+}
+
+.category {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.category-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+}
+
+.category-info span:first-child {
+    color: var(--text);
+}
+
+.category-info span:last-child {
+    color: var(--text-secondary);
+}
+
+.category-bar {
+    height: 7px;
+    background: var(--surface);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.category-bar div {
+    height: 100%;
+    background: var(--accent);
+    border-radius: inherit;
+}
